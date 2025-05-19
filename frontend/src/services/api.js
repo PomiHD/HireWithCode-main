@@ -1,4 +1,8 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+// 根据运行环境确定API基础URL
+const API_BASE_URL =
+  process.env.NODE_ENV === 'production'
+    ? '/api' // 生产环境使用相对路径
+    : 'http://localhost:5000/api'; // 开发环境使用本地地址
 
 /**
  * 注册用户

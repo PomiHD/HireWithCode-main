@@ -1,5 +1,7 @@
 import { useForm } from 'react-hook-form';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { submitChallenge } from '../services/api';
 
 const CompleteChallengePage = () => {
   const {
@@ -8,22 +10,56 @@ const CompleteChallengePage = () => {
     formState: { errors },
   } = useForm();
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+  const [userData, setUserData] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // 获取用户ID，如果没有则重定向回接受挑战页面
+    const userId = localStorage.getItem('userId');
+    const githubId = localStorage.getItem('githubId');
+    const email = localStorage.getItem('email');
+
+    if (!userId) {
+      navigate('/accept-challenge');
+      return;
+    }
+
+    setUserData({ userId, githubId, email });
+  }, [navigate]);
 
   const onSubmit = async (data) => {
-    // Here we would normally send data to the backend
-    console.log('Submission data:', data);
+    if (!userData?.userId) {
+      setError('用户信息不存在，请重新注册');
+      return;
+    }
 
-    // For now, just store in localStorage and show success
-    const userInfo = JSON.parse(localStorage.getItem('challengeUser') || '{}');
-    const submission = {
-      ...userInfo,
-      ...data,
-      submittedAt: new Date().toISOString(),
-    };
+    setIsSubmitting(true);
+    setError(null);
 
-    localStorage.setItem('submission', JSON.stringify(submission));
-    setSubmitted(true);
+    try {
+      // 调用API提交挑战
+      await submitChallenge({
+        userId: userData.userId,
+        ...data,
+      });
+
+      setSubmitted(true);
+    } catch (err) {
+      setError(err.message || '提交失败，请稍后再试');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  if (!userData) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        Loading...
+      </div>
+    );
+  }
 
   if (submitted) {
     return (
@@ -32,6 +68,12 @@ const CompleteChallengePage = () => {
         <p className="mb-6">
           感谢您参与 HireWithCode 挑战，我们会尽快审核您的提交。
         </p>
+        <div className="mt-8">
+          <p className="text-sm text-gray-600">
+            GitHub ID: {userData.githubId}
+          </p>
+          <p className="text-sm text-gray-600">邮箱: {userData.email}</p>
+        </div>
       </div>
     );
   }
@@ -39,6 +81,13 @@ const CompleteChallengePage = () => {
   return (
     <div className="max-w-md mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-center mb-6">完成挑战</h1>
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
+          {error}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div>
           <label
@@ -52,6 +101,7 @@ const CompleteChallengePage = () => {
             type="text"
             className="form-input"
             placeholder="https://github.com/yourusername/your-repo"
+            disabled={isSubmitting}
             {...register('githubRepo', {
               required: 'GitHub 仓库 URL 是必填项',
               pattern: {
@@ -79,6 +129,7 @@ const CompleteChallengePage = () => {
             type="text"
             className="form-input"
             placeholder="https://your-project.vercel.app"
+            disabled={isSubmitting}
             {...register('vercelUrl', {
               required: 'Vercel URL 是必填项',
               pattern: {
@@ -95,8 +146,8 @@ const CompleteChallengePage = () => {
         </div>
 
         <div>
-          <button type="submit" className="btn w-full">
-            提交作品
+          <button type="submit" className="btn w-full" disabled={isSubmitting}>
+            {isSubmitting ? '提交中...' : '提交作品'}
           </button>
         </div>
       </form>

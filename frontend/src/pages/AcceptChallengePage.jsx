@@ -1,5 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { registerUser } from '../services/api';
 
 const AcceptChallengePage = () => {
   const {
@@ -8,19 +10,41 @@ const AcceptChallengePage = () => {
     formState: { errors },
   } = useForm();
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
 
   const onSubmit = async (data) => {
-    // Here we would normally send data to the backend
-    console.log('Form data submitted:', data);
+    setIsSubmitting(true);
+    setError(null);
 
-    // For now, just store in localStorage and navigate
-    localStorage.setItem('challengeUser', JSON.stringify(data));
-    navigate('/complete-challenge');
+    try {
+      // 调用API注册用户
+      const response = await registerUser(data);
+
+      // 存储用户ID以便在CompleteChallengePage中使用
+      localStorage.setItem('userId', response.user._id);
+      localStorage.setItem('githubId', data.githubId);
+      localStorage.setItem('email', data.email);
+
+      // 导航到完成挑战页面
+      navigate('/complete-challenge');
+    } catch (err) {
+      setError(err.message || '提交失败，请稍后再试');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="max-w-md mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-center mb-6">接受挑战</h1>
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
+          {error}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div>
           <label
@@ -33,6 +57,7 @@ const AcceptChallengePage = () => {
             id="githubId"
             type="text"
             className="form-input"
+            disabled={isSubmitting}
             {...register('githubId', { required: 'GitHub ID 是必填项' })}
           />
           {errors.githubId && (
@@ -53,6 +78,7 @@ const AcceptChallengePage = () => {
             id="email"
             type="email"
             className="form-input"
+            disabled={isSubmitting}
             {...register('email', {
               required: '邮箱是必填项',
               pattern: {
@@ -67,8 +93,8 @@ const AcceptChallengePage = () => {
         </div>
 
         <div>
-          <button type="submit" className="btn w-full">
-            接受挑战
+          <button type="submit" className="btn w-full" disabled={isSubmitting}>
+            {isSubmitting ? '提交中...' : '接受挑战'}
           </button>
         </div>
       </form>

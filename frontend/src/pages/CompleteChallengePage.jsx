@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom'; // 添加 Link 导入
 import { submitChallenge } from '../services/api';
 
 const CompleteChallengePage = () => {
@@ -73,6 +73,9 @@ const CompleteChallengePage = () => {
             GitHub ID: {userData.githubId}
           </p>
           <p className="text-sm text-gray-600">邮箱: {userData.email}</p>
+          <Link to="/" className="text-blue-500 hover:underline">
+            返回首页
+          </Link>
         </div>
       </div>
     );

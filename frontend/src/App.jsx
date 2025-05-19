@@ -1,8 +1,4 @@
-import {
-  createBrowserRouter,
-  RouterProvider,
-  Navigate,
-} from 'react-router-dom';
+import { createHashRouter, RouterProvider, Navigate } from 'react-router-dom';
 import MainLayout from './components/layout/MainLayout';
 import WelcomePage from './pages/WelcomePage';
 import GuidePage from './pages/GuidePage';
@@ -11,8 +7,8 @@ import CompleteChallengePage from './pages/CompleteChallengePage';
 import ErrorPage from './pages/ErrorPage';
 import NotFound from './pages/NotFound';
 
-// 创建路由配置
-const router = createBrowserRouter([
+// 使用HashRouter而不是BrowserRouter
+const router = createHashRouter([
   {
     path: '/',
     element: <MainLayout />,

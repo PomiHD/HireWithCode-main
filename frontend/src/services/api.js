@@ -19,12 +19,24 @@ export const registerUser = async (userData) => {
       body: JSON.stringify(userData),
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || '注册失败');
+    // 尝试先将响应体作为文本获取
+    const responseText = await response.text();
+
+    // 尝试解析为JSON
+    let responseData;
+    try {
+      responseData = JSON.parse(responseText);
+    } catch (e) {
+      // 如果不是有效的JSON，抛出更具描述性的错误
+      console.error('服务器返回了非JSON格式的响应:', responseText);
+      throw new Error('服务器返回了非JSON格式的响应，可能存在配置问题');
     }
 
-    return await response.json();
+    if (!response.ok) {
+      throw new Error(responseData.message || '注册失败');
+    }
+
+    return responseData;
   } catch (error) {
     console.error('注册用户时出错:', error);
     throw error;

@@ -4,15 +4,11 @@
   "outputDirectory": "frontend/dist",
   "routes": [
     {
+      "handle": "filesystem"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/server.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/frontend/dist/$1"
-    },
-    {
-      "handle": "filesystem"
     },
     {
       "src": "/(.*)",

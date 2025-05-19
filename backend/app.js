@@ -16,9 +16,9 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Routes
-app.use('/api/users', require('./routes/users'));
-app.use('/api/submissions', require('./routes/submissions'));
+// Routes - remove the /api prefix since server.js already handles that
+app.use('/users', require('./routes/users'));
+app.use('/submissions', require('./routes/submissions'));
 
 // Error handler
 app.use(errorHandler);
